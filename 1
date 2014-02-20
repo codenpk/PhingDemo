@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="public_abc" default="help" basedir=".">
+    <property name="dir.public"    value="public"/>
+    <!-- get environment -->
+    <target name="get-env" description="get the environment for an action">
+       <input propertyname="environment" 
+           validargs="dev,test,prod">Enter environment name </input>
+       <property file="${environment}.properties"/>
+    </target>
+
+    <!-- configure application for specific environment -->
+    <target name="config" depends="get-env"
+        description="configure application for a specific environment">
+        <property file="${environment}.properties"/>
+        <copy overwrite="true"
+             file="${dir.public}/temp_const.php"
+             tofile="${dir.public}/constants.php">
+             <filterchain> 
+                 <replacetokens begintoken="@" endtoken="@">
+                     <token key="db_server" value="${db.server}" />
+                     <token key="db_user" value="${db.user}" />
+                     <token key="db_pass" value="${db.pass}" />
+                     <token key="db_name" value="${db.name}" />
+                 </replacetokens>
+            </filterchain>
+         </copy>
+    </target>
+
+    <!-- copying files to target -->
+    <target name="build" depends="config">
+<delete dir="target" includeemptydirs="true" verbose="true" failonerror="true" />
+<copy todir="target/${dir.public}" overwrite="true">
+  <fileset dir="public">
+    <include name="**/**" />
+    <exclude name="temp_const.php" />
+  </fileset>
+</copy>
+<zip destfile="target/${dir.public}.zip" basedir="target/${dir.public}"/>
+    </target>
+    
+</project>
+
